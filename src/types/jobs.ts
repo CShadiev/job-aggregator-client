@@ -127,6 +127,7 @@ export const DEFAULT_JOB_FEED_QUERY: JobFeedQuery = {
   active_only: false,
   sort_by: "profile_ats_match_score",
   sort_order: "desc",
+  min_cv_ats_match_score: 80,
 };
 
 export const APPLIED_JOBS_QUERY: JobFeedQuery = {

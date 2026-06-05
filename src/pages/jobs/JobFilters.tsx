@@ -1,4 +1,8 @@
-import { FilterOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  FilterOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 import {
   Button,
   Col,
@@ -43,11 +47,7 @@ interface FilterFormValues {
 function queryToFormValues(query: JobFeedQuery): FilterFormValues {
   return {
     remote:
-      query.remote === undefined
-        ? "all"
-        : query.remote
-          ? "remote"
-          : "onsite",
+      query.remote === undefined ? "all" : query.remote ? "remote" : "onsite",
     sources: query.sources,
     tags: query.tags,
     location: query.location,
@@ -62,10 +62,7 @@ function queryToFormValues(query: JobFeedQuery): FilterFormValues {
 
 function formValuesToQuery(values: FilterFormValues): JobFeedQuery {
   return {
-    remote:
-      values.remote === "all"
-        ? undefined
-        : values.remote === "remote",
+    remote: values.remote === "all" ? undefined : values.remote === "remote",
     sources: values.sources ?? [],
     tags: values.tags ?? [],
     location: values.location?.trim() || undefined,
@@ -166,7 +163,7 @@ export default function JobFilters({
                       options={(
                         Object.entries(SORT_FIELD_LABELS) as [
                           JobFeedSortField,
-                          string,
+                          string
                         ][]
                       ).map(([value, label]) => ({ value, label }))}
                     />
@@ -215,7 +212,7 @@ export default function JobFilters({
                   icon={<ReloadOutlined />}
                   onClick={() => {
                     form.setFieldsValue(
-                      queryToFormValues(DEFAULT_JOB_FEED_QUERY),
+                      queryToFormValues(DEFAULT_JOB_FEED_QUERY)
                     );
                     onReset();
                   }}
