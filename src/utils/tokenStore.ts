@@ -2,8 +2,8 @@ import { jwtDecode } from "jwt-decode";
 import { publicClient } from "../http/clients";
 import type { LoginResponse } from "../types/auth";
 
-const ACCESS_TOKEN_KEY = "access_token";
-const REFRESH_TOKEN_KEY = "refresh_token";
+const ACCESS_TOKEN_KEY = "job_aggregator_at";
+const REFRESH_TOKEN_KEY = "job_aggregator_rt";
 const EXPIRY_BUFFER_SECONDS = 30;
 
 let refreshPromise: Promise<string> | null = null;
@@ -23,7 +23,7 @@ export function getRefreshToken(): string | null {
 
 export function setTokens(
   accessToken: string,
-  refreshToken: string | null | undefined,
+  refreshToken: string | null | undefined
 ): void {
   localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   if (refreshToken) {
@@ -82,7 +82,7 @@ export async function getValidAccessToken(): Promise<string> {
     try {
       const { data } = await publicClient.post<LoginResponse>(
         "/users/refresh",
-        { refresh_token: refreshToken },
+        { refresh_token: refreshToken }
       );
       setTokens(data.access_token, data.refresh_token);
       return data.access_token;
