@@ -7,6 +7,8 @@ import LoginPage from "./pages/login/LoginPage";
 import themeConfig from "./themeConfig";
 import "./app.sass";
 
+console.log(import.meta.env.VITE_HOME_URL);
+
 export default function App() {
   return (
     <ConfigProvider theme={themeConfig}>
