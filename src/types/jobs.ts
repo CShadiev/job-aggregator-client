@@ -126,7 +126,7 @@ export const DEFAULT_JOB_FEED_QUERY: JobFeedQuery = {
   exclude_deal_breakers: false,
   exclude_skipped: true,
   active_only: false,
-  sort_by: "profile_ats_match_score",
+  sort_by: "posted_at",
   sort_order: "desc",
   applied: false,
   min_cv_ats_match_score: 80,
