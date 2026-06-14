@@ -432,6 +432,7 @@ The renames follow recognizable **patterns** — internalize the patterns, not j
 - **Compound `X.Item` children → `items` arrays**: `Tabs.TabPane`, `Timeline.Item`, `Breadcrumb.Item`, `Menu` children, `Mentions.Option`, `Anchor` children.
 - **`Space`'s `split` → `separator`**.
 - **Containers replaced**: `Button.Group` and `Input.Group` → `Space.Compact`; `BackTop` → `FloatButton.BackTop`; `Dropdown.Button` → `Space.Compact + Dropdown + Button`.
+- **`Alert`**: `message` → `title`.
 
 React 19 note: under antd v6 you do **not** need `@ant-design/v5-patch-for-react-19`. Pair `@ant-design/icons@6` with `antd@6`.
 
