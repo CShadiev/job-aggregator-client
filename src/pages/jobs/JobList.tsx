@@ -134,7 +134,9 @@ export default function JobList({
       key: "posted_at",
       width: "10%",
       render: (_, record) => (
-        <Typography.Text>{formatDateTime(record.job.posted_at)}</Typography.Text>
+        <Typography.Text>
+          {formatDateTime(record.job.posted_at)}
+        </Typography.Text>
       ),
     },
   ];

@@ -20,7 +20,7 @@ export default function JobsPage() {
   const [appliedPage, setAppliedPage] = useState(1);
   const [appliedPageSize, setAppliedPageSize] = useState(10);
   const [appliedPostedWithinDays, setAppliedPostedWithinDays] = useState(
-    DEFAULT_APPLIED_POSTED_WITHIN_DAYS,
+    DEFAULT_APPLIED_POSTED_WITHIN_DAYS
   );
 
   const unappliedContext = useMemo(
@@ -30,7 +30,7 @@ export default function JobsPage() {
       pageSize: unappliedPageSize,
       scope: "unapplied" as const,
     }),
-    [query, unappliedPage, unappliedPageSize],
+    [query, unappliedPage, unappliedPageSize]
   );
 
   const appliedContext = useMemo(
@@ -41,14 +41,14 @@ export default function JobsPage() {
       scope: "applied" as const,
       postedWithinDays: appliedPostedWithinDays,
     }),
-    [appliedPage, appliedPageSize, appliedPostedWithinDays],
+    [appliedPage, appliedPageSize, appliedPostedWithinDays]
   );
 
   const unappliedFeed = useUnappliedJobFeed(unappliedContext);
   const appliedFeed = useAppliedJobFeed(
     appliedPostedWithinDays,
     appliedPage,
-    appliedPageSize,
+    appliedPageSize
   );
 
   const handleApplyFilters = (nextQuery: JobFeedQuery) => {
@@ -65,6 +65,8 @@ export default function JobsPage() {
     setAppliedPostedWithinDays(days);
     setAppliedPage(1);
   };
+
+  console.log("unappliedFeed.jobs", unappliedFeed.jobs);
 
   return (
     <Flex vertical gap={24}>
@@ -113,7 +115,7 @@ export default function JobsPage() {
             <Alert
               type="error"
               showIcon
-              message="Unable to load jobs"
+              title="Unable to load jobs"
               description={
                 unappliedFeed.error instanceof Error
                   ? unappliedFeed.error.message

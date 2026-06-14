@@ -57,6 +57,7 @@ export interface UpdateJobStatusRequest {
 }
 
 export interface JobFeedQuery {
+  applied: boolean;
   remote?: boolean;
   sources: string[];
   tags: string[];
@@ -127,6 +128,7 @@ export const DEFAULT_JOB_FEED_QUERY: JobFeedQuery = {
   active_only: false,
   sort_by: "profile_ats_match_score",
   sort_order: "desc",
+  applied: false,
   min_cv_ats_match_score: 80,
 };
 
@@ -138,6 +140,7 @@ export const APPLIED_JOBS_QUERY: JobFeedQuery = {
   active_only: false,
   sort_by: "posted_at",
   sort_order: "desc",
+  applied: true,
 };
 
 export const DEFAULT_APPLIED_POSTED_WITHIN_DAYS = 30;

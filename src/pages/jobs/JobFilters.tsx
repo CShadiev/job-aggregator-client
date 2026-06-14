@@ -32,6 +32,7 @@ interface JobFiltersProps {
 }
 
 interface FilterFormValues {
+  applied: boolean;
   remote?: "all" | "remote" | "onsite";
   sources?: string[];
   tags?: string[];
@@ -46,6 +47,7 @@ interface FilterFormValues {
 
 function queryToFormValues(query: JobFeedQuery): FilterFormValues {
   return {
+    applied: query.applied,
     remote:
       query.remote === undefined ? "all" : query.remote ? "remote" : "onsite",
     sources: query.sources,
@@ -62,6 +64,7 @@ function queryToFormValues(query: JobFeedQuery): FilterFormValues {
 
 function formValuesToQuery(values: FilterFormValues): JobFeedQuery {
   return {
+    applied: values.applied,
     remote: values.remote === "all" ? undefined : values.remote === "remote",
     sources: values.sources ?? [],
     tags: values.tags ?? [],

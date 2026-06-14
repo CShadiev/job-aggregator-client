@@ -1,8 +1,4 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { apiClient } from "../http/clients";
 import { isPostedWithinDays } from "../utils/date";
@@ -22,6 +18,7 @@ const MAX_FETCH_PAGES = 50;
 const APPLIED_JOBS_QUERY_KEY = ["jobs", "applied", "all"] as const;
 
 function unappliedJobFeedQueryKey(params: JobFeedParams) {
+  console.log("unappliedJobFeedQueryKey", params);
   return [
     "jobs",
     params.scope,
@@ -35,20 +32,8 @@ function isAppliedItem(item: JobFeedItem): boolean {
   return item.status !== null && !item.status.skipped;
 }
 
-function isUnappliedItem(item: JobFeedItem, includeSkipped: boolean): boolean {
-  if (item.status === null) {
-    return true;
-  }
-
-  if (item.status.skipped) {
-    return includeSkipped;
-  }
-
-  return false;
-}
-
 async function fetchAllJobFeedItems(
-  query: JobFeedQuery,
+  query: JobFeedQuery
 ): Promise<JobFeedItem[]> {
   const all: JobFeedItem[] = [];
   let page = 1;
@@ -61,7 +46,7 @@ async function fetchAllJobFeedItems(
         query,
         page,
         page_size: FETCH_PAGE_SIZE,
-      },
+      }
     );
 
     all.push(...data.data);
@@ -77,23 +62,22 @@ async function fetchAllJobFeedItems(
 }
 
 export function useUnappliedJobFeed(params: JobFeedParams) {
-  const includeSkipped = !params.query.exclude_skipped;
-
   const query = useQuery({
     queryKey: unappliedJobFeedQueryKey(params),
     queryFn: async () => {
-      const { data } = await apiClient.post<
-        PaginatedDataResponse<JobFeedItem>
-      >("/jobs/search", {
-        query: params.query,
-        page: params.page,
-        page_size: params.pageSize,
-      });
+      const { data } = await apiClient.post<PaginatedDataResponse<JobFeedItem>>(
+        "/jobs/search",
+        {
+          query: { ...params.query, skipped: !params.query.exclude_skipped },
+          page: params.page,
+          page_size: params.pageSize,
+        }
+      );
       return data;
     },
     select: (response) => ({
       ...response,
-      data: response.data.filter((item) => isUnappliedItem(item, includeSkipped)),
+      data: response.data,
     }),
   });
 
@@ -113,7 +97,7 @@ export function useUnappliedJobFeed(params: JobFeedParams) {
 export function useAppliedJobFeed(
   postedWithinDays: number,
   page: number,
-  pageSize: number,
+  pageSize: number
 ) {
   const query = useQuery({
     queryKey: APPLIED_JOBS_QUERY_KEY,
@@ -124,7 +108,7 @@ export function useAppliedJobFeed(
   const filtered = useMemo(() => {
     const items = query.data ?? [];
     return items.filter((item) =>
-      isPostedWithinDays(item.job.posted_at, postedWithinDays),
+      isPostedWithinDays(item.job.posted_at, postedWithinDays)
     );
   }, [query.data, postedWithinDays]);
 
@@ -155,21 +139,22 @@ interface UpdateJobStatusVariables {
 function buildStatus(
   jobUid: string,
   existing: JobFeedItem["status"],
-  update: UpdateJobStatusRequest,
+  update: UpdateJobStatusRequest
 ): NonNullable<JobFeedItem["status"]> {
   return {
     username: existing?.username ?? "",
     job_uid: jobUid,
     active: update.active ?? existing?.active ?? DEFAULT_APPLY_STATUS.active,
     stage: update.stage ?? existing?.stage ?? DEFAULT_APPLY_STATUS.stage,
-    skipped: update.skipped ?? existing?.skipped ?? DEFAULT_APPLY_STATUS.skipped,
+    skipped:
+      update.skipped ?? existing?.skipped ?? DEFAULT_APPLY_STATUS.skipped,
   };
 }
 
 function applyStatusUpdate(
   items: JobFeedItem[],
   jobUid: string,
-  update: UpdateJobStatusRequest,
+  update: UpdateJobStatusRequest
 ): JobFeedItem[] {
   return items.map((item) => {
     if (item.job.uid !== jobUid) {
@@ -203,7 +188,7 @@ export function useUpdateJobStatus() {
         queryClient.setQueryData<JobFeedItem[]>(key, (current) =>
           current
             ? applyStatusUpdate(current, variables.jobUid, variables.update)
-            : current,
+            : current
         );
 
         return { key, previous, kind: "applied" as const };
@@ -225,10 +210,10 @@ export function useUpdateJobStatus() {
             data: applyStatusUpdate(
               current.data,
               variables.jobUid,
-              variables.update,
+              variables.update
             ),
           };
-        },
+        }
       );
 
       return { key, previous, kind: "unapplied" as const };
