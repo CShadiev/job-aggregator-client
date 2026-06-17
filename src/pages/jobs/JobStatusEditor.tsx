@@ -17,6 +17,10 @@ interface JobStatusEditorProps {
   allowSkip?: boolean;
 }
 
+const isAppliedStage = (stage: ApplicationStage) => {
+  return stage !== "not_applied";
+};
+
 export default function JobStatusEditor({
   jobUid,
   status,
@@ -66,7 +70,7 @@ export default function JobStatusEditor({
     );
   }
 
-  if (!status) {
+  if (!status || status.stage === "not_applied") {
     return (
       <Flex vertical gap={8}>
         <Tag>Not applied</Tag>
@@ -116,13 +120,13 @@ export default function JobStatusEditor({
           options={(
             Object.entries(APPLICATION_STAGE_LABELS) as [
               ApplicationStage,
-              string,
+              string
             ][]
           ).map(([value, label]) => ({ value, label }))}
           onChange={(stage) =>
             updateStatus({
               jobUid,
-              update: { stage },
+              update: { stage, applied: isAppliedStage(stage) },
               filterContext,
             })
           }

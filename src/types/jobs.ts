@@ -1,4 +1,5 @@
 export type ApplicationStage =
+  | "not_applied"
   | "applied"
   | "hiring_manager_interview"
   | "technical_interview"
@@ -42,6 +43,22 @@ export interface JobApplicationStatus {
   active: boolean;
   stage: ApplicationStage;
   skipped: boolean;
+  applied: boolean;
+  cover_letter_key: string | null;
+}
+
+export interface CoverLetterSection {
+  title: string;
+  content: string[];
+}
+
+export interface CoverLetterContent {
+  name: string;
+  title: string;
+  email: string;
+  linkedin: Record<string, string>;
+  website: Record<string, string>;
+  sections: CoverLetterSection[];
 }
 
 export interface JobFeedItem {
@@ -54,6 +71,7 @@ export interface UpdateJobStatusRequest {
   active?: boolean;
   stage?: ApplicationStage;
   skipped?: boolean;
+  applied?: boolean;
 }
 
 export interface JobFeedQuery {
@@ -96,6 +114,7 @@ export interface JobFeedParams {
 }
 
 export const APPLICATION_STAGE_LABELS: Record<ApplicationStage, string> = {
+  not_applied: "Not applied",
   applied: "Applied",
   hiring_manager_interview: "Hiring Manager Interview",
   technical_interview: "Technical Interview",
@@ -103,11 +122,12 @@ export const APPLICATION_STAGE_LABELS: Record<ApplicationStage, string> = {
 };
 
 export const DEFAULT_APPLY_STATUS: Required<
-  Pick<UpdateJobStatusRequest, "active" | "stage" | "skipped">
+  Pick<UpdateJobStatusRequest, "active" | "stage" | "skipped" | "applied">
 > = {
   stage: "applied",
   active: true,
   skipped: false,
+  applied: true,
 };
 
 export const DEFAULT_SKIP_STATUS: Pick<UpdateJobStatusRequest, "skipped"> = {

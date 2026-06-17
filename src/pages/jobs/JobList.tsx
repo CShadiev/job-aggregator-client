@@ -1,6 +1,7 @@
-import { LinkOutlined } from "@ant-design/icons";
+import { FileTextOutlined, LinkOutlined } from "@ant-design/icons";
 import {
   Alert,
+  Button,
   Flex,
   Progress,
   Space,
@@ -9,9 +10,11 @@ import {
   Typography,
   type TableColumnsType,
 } from "antd";
+import { useState } from "react";
 import { formatDateTime } from "../../utils/date";
 import { formatScore, scoreStatus } from "../../utils/format";
 import type { JobFeedItem, JobFeedParams } from "../../types/jobs";
+import CoverLetterModal from "./CoverLetterModal";
 import JobStatusEditor from "./JobStatusEditor";
 import "./JobList.sass";
 
@@ -42,6 +45,10 @@ export default function JobList({
   emptyDescription,
   allowSkip = false,
 }: JobListProps) {
+  const [coverLetterJob, setCoverLetterJob] = useState<JobFeedItem | null>(
+    null
+  );
+
   const columns: TableColumnsType<JobFeedItem> = [
     {
       title: "Job",
@@ -66,6 +73,17 @@ export default function JobList({
               </Typography.Text>
             ) : null}
           </Space>
+          {record.status?.cover_letter_key ? (
+            <Button
+              type="link"
+              size="small"
+              icon={<FileTextOutlined />}
+              style={{ padding: 0, height: "auto", alignSelf: "flex-start" }}
+              onClick={() => setCoverLetterJob(record)}
+            >
+              Cover letter
+            </Button>
+          ) : null}
         </Flex>
       ),
     },
@@ -142,50 +160,59 @@ export default function JobList({
   ];
 
   return (
-    <Table<JobFeedItem>
-      className="job-list"
-      key={listKey}
-      rowKey={(record) => record.job.uid}
-      columns={columns}
-      dataSource={jobs}
-      loading={loading}
-      pagination={{
-        current: page,
-        pageSize,
-        total,
-        showSizeChanger: true,
-        pageSizeOptions: [10, 20, 50],
-        showTotal: (count) => `${count} jobs`,
-        onChange: onPageChange,
-      }}
-      expandable={{
-        expandedRowRender: (record) => (
-          <Flex vertical gap={12}>
-            <Typography.Paragraph style={{ marginBottom: 0 }}>
-              {record.fit.summary}
-            </Typography.Paragraph>
-            {record.job.tags.length > 0 ? (
-              <Space size={[4, 4]} wrap>
-                {record.job.tags.map((tag) => (
-                  <Tag key={tag}>{tag}</Tag>
-                ))}
-              </Space>
-            ) : null}
-          </Flex>
-        ),
-        rowExpandable: (record) =>
-          Boolean(record.fit.summary || record.job.tags.length > 0),
-      }}
-      locale={{
-        emptyText: (
-          <Alert
-            type="info"
-            showIcon
-            message={emptyTitle}
-            description={emptyDescription}
-          />
-        ),
-      }}
-    />
+    <>
+      <Table<JobFeedItem>
+        className="job-list"
+        key={listKey}
+        rowKey={(record) => record.job.uid}
+        columns={columns}
+        dataSource={jobs}
+        loading={loading}
+        pagination={{
+          current: page,
+          pageSize,
+          total,
+          showSizeChanger: true,
+          pageSizeOptions: [10, 20, 50],
+          showTotal: (count) => `${count} jobs`,
+          onChange: onPageChange,
+        }}
+        expandable={{
+          expandedRowRender: (record) => (
+            <Flex vertical gap={12}>
+              <Typography.Paragraph style={{ marginBottom: 0 }}>
+                {record.fit.summary}
+              </Typography.Paragraph>
+              {record.job.tags.length > 0 ? (
+                <Space size={[4, 4]} wrap>
+                  {record.job.tags.map((tag) => (
+                    <Tag key={tag}>{tag}</Tag>
+                  ))}
+                </Space>
+              ) : null}
+            </Flex>
+          ),
+          rowExpandable: (record) =>
+            Boolean(record.fit.summary || record.job.tags.length > 0),
+        }}
+        locale={{
+          emptyText: (
+            <Alert
+              type="info"
+              showIcon
+              message={emptyTitle}
+              description={emptyDescription}
+            />
+          ),
+        }}
+      />
+      <CoverLetterModal
+        jobUid={coverLetterJob?.job.uid ?? null}
+        jobTitle={coverLetterJob?.job.title}
+        company={coverLetterJob?.job.company}
+        open={coverLetterJob !== null}
+        onClose={() => setCoverLetterJob(null)}
+      />
+    </>
   );
 }

@@ -1,0 +1,45 @@
+.cl-document
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+  .cl-contact
+    column-gap: 12px
+    row-gap: 4px
+
+  .cl-contact-item
+    display: inline-flex
+    align-items: center
+
+.cl-editable
+  border-radius: 6px
+  padding: 2px 6px
+  margin: -2px -6px
+  cursor: text
+  transition: background-color 0.15s ease
+  outline: none
+
+  &:hover
+    background-color: rgba(0, 119, 179, 0.08)
+
+  &:focus-visible
+    background-color: rgba(0, 119, 179, 0.12)
+
+.cl-placeholder
+  color: rgba(0, 0, 0, 0.3)
+  font-style: italic
+
+.cl-section
+  padding: 6px 8px
+  margin: 0 -8px
+  border-radius: 8px
+
+  &.cl-editable:hover
+    background-color: rgba(0, 119, 179, 0.06)
+
+  &.cl-section--editing
+    display: flex
+    flex-direction: column
+    gap: 8px
+    background-color: rgba(0, 119, 179, 0.04)
+    cursor: default

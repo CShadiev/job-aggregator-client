@@ -148,6 +148,9 @@ function buildStatus(
     stage: update.stage ?? existing?.stage ?? DEFAULT_APPLY_STATUS.stage,
     skipped:
       update.skipped ?? existing?.skipped ?? DEFAULT_APPLY_STATUS.skipped,
+    applied:
+      update.applied ?? existing?.applied ?? DEFAULT_APPLY_STATUS.applied,
+    cover_letter_key: existing?.cover_letter_key ?? null,
   };
 }
 

@@ -1,4 +1,4 @@
-import { ConfigProvider } from "antd";
+import { App as AntApp, ConfigProvider } from "antd";
 import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppShell from "./layouts/AppShell";
@@ -12,16 +12,18 @@ console.log(import.meta.env.VITE_HOME_URL);
 export default function App() {
   return (
     <ConfigProvider theme={themeConfig}>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AppShell />}>
-            <Route path="/" element={<JobsPage />} />
-            <Route path="/jobs" element={<JobsPage />} />
+      <AntApp component={false}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppShell />}>
+              <Route path="/" element={<JobsPage />} />
+              <Route path="/jobs" element={<JobsPage />} />
+            </Route>
           </Route>
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AntApp>
     </ConfigProvider>
   );
 }

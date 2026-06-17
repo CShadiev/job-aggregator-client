@@ -209,3 +209,41 @@ class LoginRequest(BaseModel):
 
 - POST: /users/refresh
   body: RefreshTokenRequest
+
+## new endpoints
+
+Whether a cover letter exists for a job is determined by the value of the job.status.cover_letter_key property. If it is not None, then a cover letter exists for the job.
+
+- GET /jobs/{job_uid}/cover-letter
+  job_uid: str
+  returns: CoverLetterContent
+
+- PATCH /jobs/{job_uid}/cover-letter
+  job_uid: str
+  body: Partial<CoverLetterContent>
+
+- GET /jobs/{job_uid}/cover-letter-pdf
+  job_uid: str
+  returns: bytes
+
+CoverLetterContent = {
+"name": "string",
+"title": "string",
+"email": "string",
+"linkedin": {
+"additionalProp1": "string",
+"additionalProp2": "string",
+"additionalProp3": "string"
+},
+"website": {
+"additionalProp1": "string",
+"additionalProp2": "string",
+"additionalProp3": "string"
+},
+"sections": [
+{
+"title": "string",
+"content": ["string"]
+}
+]
+}
