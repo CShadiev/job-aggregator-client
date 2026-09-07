@@ -97,7 +97,8 @@ export function useUnappliedJobFeed(params: JobFeedParams) {
 export function useAppliedJobFeed(
   postedWithinDays: number,
   page: number,
-  pageSize: number
+  pageSize: number,
+  hideInactive: boolean
 ) {
   const query = useQuery({
     queryKey: APPLIED_JOBS_QUERY_KEY,
@@ -107,10 +108,13 @@ export function useAppliedJobFeed(
 
   const filtered = useMemo(() => {
     const items = query.data ?? [];
-    return items.filter((item) =>
-      isPostedWithinDays(item.job.posted_at, postedWithinDays)
-    );
-  }, [query.data, postedWithinDays]);
+    return items.filter((item) => {
+      if (hideInactive && item.status && !item.status.active) {
+        return false;
+      }
+      return isPostedWithinDays(item.job.posted_at, postedWithinDays);
+    });
+  }, [query.data, postedWithinDays, hideInactive]);
 
   const jobs = useMemo(() => {
     const start = (page - 1) * pageSize;

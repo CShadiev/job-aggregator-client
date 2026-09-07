@@ -1,27 +1,46 @@
 import { Alert, Badge, Flex, Segmented, Typography } from "antd";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   APPLIED_JOBS_QUERY,
-  DEFAULT_APPLIED_POSTED_WITHIN_DAYS,
   DEFAULT_JOB_FEED_QUERY,
   type JobFeedQuery,
   type JobFeedScope,
 } from "../../types/jobs";
 import { useAppliedJobFeed, useUnappliedJobFeed } from "../../requests/jobs";
+import {
+  loadAppliedFilters,
+  loadUnappliedQuery,
+  saveAppliedFilters,
+  saveUnappliedQuery,
+} from "../../utils/jobFeedStorage";
 import AppliedJobsControls from "./AppliedJobsControls";
 import JobFilters from "./JobFilters";
 import JobList from "./JobList";
 
 export default function JobsPage() {
   const [activePanel, setActivePanel] = useState<JobFeedScope>("unapplied");
-  const [query, setQuery] = useState<JobFeedQuery>(DEFAULT_JOB_FEED_QUERY);
+  const [query, setQuery] = useState(loadUnappliedQuery);
   const [unappliedPage, setUnappliedPage] = useState(1);
   const [unappliedPageSize, setUnappliedPageSize] = useState(10);
   const [appliedPage, setAppliedPage] = useState(1);
   const [appliedPageSize, setAppliedPageSize] = useState(10);
   const [appliedPostedWithinDays, setAppliedPostedWithinDays] = useState(
-    DEFAULT_APPLIED_POSTED_WITHIN_DAYS
+    () => loadAppliedFilters().postedWithinDays
   );
+  const [hideInactive, setHideInactive] = useState(
+    () => loadAppliedFilters().hideInactive
+  );
+
+  useEffect(() => {
+    saveUnappliedQuery(query);
+  }, [query]);
+
+  useEffect(() => {
+    saveAppliedFilters({
+      postedWithinDays: appliedPostedWithinDays,
+      hideInactive,
+    });
+  }, [appliedPostedWithinDays, hideInactive]);
 
   const unappliedContext = useMemo(
     () => ({
@@ -48,7 +67,8 @@ export default function JobsPage() {
   const appliedFeed = useAppliedJobFeed(
     appliedPostedWithinDays,
     appliedPage,
-    appliedPageSize
+    appliedPageSize,
+    hideInactive
   );
 
   const handleApplyFilters = (nextQuery: JobFeedQuery) => {
@@ -63,6 +83,11 @@ export default function JobsPage() {
 
   const handleAppliedWindowChange = (days: number) => {
     setAppliedPostedWithinDays(days);
+    setAppliedPage(1);
+  };
+
+  const handleHideInactiveChange = (nextHideInactive: boolean) => {
+    setHideInactive(nextHideInactive);
     setAppliedPage(1);
   };
 
@@ -136,8 +161,16 @@ export default function JobsPage() {
               setUnappliedPage(nextPage);
               setUnappliedPageSize(nextPageSize);
             }}
-            emptyTitle="No new opportunities match your filters"
-            emptyDescription="Try adjusting the discovery filters or clearing some constraints."
+            emptyTitle={
+              query.q
+                ? `No jobs found matching "${query.q}"`
+                : "No new opportunities found"
+            }
+            emptyDescription={
+              query.q
+                ? "Try searching for a different technology, title, or employer, or lower the ATS match threshold."
+                : "Try adjusting your discovery filters or check back after the next scheduled ingestion cycle."
+            }
             allowSkip
           />
         </>
@@ -153,6 +186,8 @@ export default function JobsPage() {
           <AppliedJobsControls
             postedWithinDays={appliedPostedWithinDays}
             onPostedWithinDaysChange={handleAppliedWindowChange}
+            hideInactive={hideInactive}
+            onHideInactiveChange={handleHideInactiveChange}
             count={appliedFeed.total}
             loading={appliedFeed.isLoading || appliedFeed.isFetching}
           />
@@ -182,8 +217,16 @@ export default function JobsPage() {
               setAppliedPage(nextPage);
               setAppliedPageSize(nextPageSize);
             }}
-            emptyTitle="No applications in this period"
-            emptyDescription="Try widening the posted date window, or mark a job as applied from the New opportunities tab."
+            emptyTitle={
+              hideInactive
+                ? "No active applications in this period"
+                : "No applications in this period"
+            }
+            emptyDescription={
+              hideInactive
+                ? "Try including inactive applications, widening the posted date window, or mark a job as applied from the New opportunities tab."
+                : "Try widening the posted date window, or mark a job as applied from the New opportunities tab."
+            }
           />
         </>
       )}

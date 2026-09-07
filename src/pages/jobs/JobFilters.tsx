@@ -32,6 +32,7 @@ interface JobFiltersProps {
 }
 
 interface FilterFormValues {
+  q?: string;
   applied: boolean;
   remote?: "all" | "remote" | "onsite";
   sources?: string[];
@@ -47,6 +48,7 @@ interface FilterFormValues {
 
 function queryToFormValues(query: JobFeedQuery): FilterFormValues {
   return {
+    q: query.q ?? "",
     applied: query.applied,
     remote:
       query.remote === undefined ? "all" : query.remote ? "remote" : "onsite",
@@ -63,7 +65,9 @@ function queryToFormValues(query: JobFeedQuery): FilterFormValues {
 }
 
 function formValuesToQuery(values: FilterFormValues): JobFeedQuery {
+  const trimmedQ = values.q?.trim();
   return {
+    q: trimmedQ && trimmedQ.length > 0 ? trimmedQ : undefined,
     applied: values.applied,
     remote: values.remote === "all" ? undefined : values.remote === "remote",
     sources: values.sources ?? [],
@@ -88,145 +92,188 @@ export default function JobFilters({
   const [form] = Form.useForm<FilterFormValues>();
 
   return (
-    <Collapse
-      defaultActiveKey={[]}
-      items={[
-        {
-          key: "filters",
-          label: (
-            <Flex align="center" gap={8} wrap="wrap">
-              <FilterOutlined />
-              <Typography.Text strong>Discovery filters</Typography.Text>
-              <Typography.Text type="secondary">
-                Apply to new opportunities only
-              </Typography.Text>
-            </Flex>
-          ),
-          children: (
-            <Form
-              form={form}
-              layout="vertical"
-              initialValues={queryToFormValues(query)}
-              onFinish={(values) => onApply(formValuesToQuery(values))}
+    <Form
+      form={form}
+      layout="vertical"
+      initialValues={queryToFormValues(query)}
+      onFinish={(values) => onApply(formValuesToQuery(values))}
+    >
+      <Flex vertical gap={12}>
+        <Row gutter={[12, 12]} align="middle">
+          <Col flex="auto">
+            <Form.Item name="q" noStyle>
+              <Input
+                size="large"
+                placeholder="Search matching jobs by technology, title, or employer (e.g. Python, Kubernetes, Stripe)..."
+                prefix={<SearchOutlined style={{ color: "#8c8c8c" }} />}
+                allowClear
+                onPressEnter={(event) => {
+                  event.preventDefault();
+                  form.submit();
+                }}
+              />
+            </Form.Item>
+          </Col>
+          <Col>
+            <Button
+              type="primary"
+              size="large"
+              htmlType="submit"
+              icon={<SearchOutlined />}
+              loading={loading}
             >
-              <Row gutter={[16, 0]}>
-                <Col xs={24} md={8} lg={6}>
-                  <Form.Item label="Remote" name="remote">
-                    <Select
-                      options={[
-                        { value: "all", label: "All locations" },
-                        { value: "remote", label: "Remote only" },
-                        { value: "onsite", label: "On-site only" },
-                      ]}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8} lg={6}>
-                  <Form.Item label="Location" name="location">
-                    <Input placeholder="City, region, or country" allowClear />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8} lg={6}>
-                  <Form.Item label="Sources" name="sources">
-                    <Select
-                      mode="tags"
-                      placeholder="e.g. arbeitnow, stepstone"
-                      tokenSeparators={[","]}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8} lg={6}>
-                  <Form.Item label="Tags" name="tags">
-                    <Select
-                      mode="tags"
-                      placeholder="e.g. python, react"
-                      tokenSeparators={[","]}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8} lg={6}>
-                  <Form.Item
-                    label="Min CV match score"
-                    name="min_cv_ats_match_score"
-                  >
-                    <InputNumber min={0} max={100} style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8} lg={6}>
-                  <Form.Item
-                    label="Min profile match score"
-                    name="min_profile_ats_match_score"
-                  >
-                    <InputNumber min={0} max={100} style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8} lg={6}>
-                  <Form.Item label="Sort by" name="sort_by">
-                    <Select
-                      options={(
-                        Object.entries(SORT_FIELD_LABELS) as [
-                          JobFeedSortField,
-                          string
-                        ][]
-                      ).map(([value, label]) => ({ value, label }))}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8} lg={6}>
-                  <Form.Item label="Sort order" name="sort_order">
-                    <Select
-                      options={[
-                        { value: "desc", label: "Descending" },
-                        { value: "asc", label: "Ascending" },
-                      ]}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8} lg={6}>
-                  <Form.Item
-                    label="Exclude deal breakers"
-                    name="exclude_deal_breakers"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8} lg={6}>
-                  <Form.Item
-                    label="Show skipped jobs"
-                    name="show_skipped"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
-                </Col>
-              </Row>
+              Search
+            </Button>
+          </Col>
+        </Row>
 
-              <Flex gap={8} wrap="wrap">
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  icon={<SearchOutlined />}
-                  loading={loading}
-                >
-                  Apply filters
-                </Button>
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={() => {
-                    form.setFieldsValue(
-                      queryToFormValues(DEFAULT_JOB_FEED_QUERY)
-                    );
-                    onReset();
-                  }}
-                >
-                  Reset
-                </Button>
-              </Flex>
-            </Form>
-          ),
-        },
-      ]}
-    />
+        <Collapse
+          defaultActiveKey={[]}
+          items={[
+            {
+              key: "filters",
+              label: (
+                <Flex align="center" gap={8} wrap="wrap">
+                  <FilterOutlined />
+                  <Typography.Text strong>Discovery filters</Typography.Text>
+                  <Typography.Text type="secondary">
+                    Score floors, locations, remote, and sources
+                  </Typography.Text>
+                </Flex>
+              ),
+              children: (
+                <>
+                  <Row gutter={[16, 0]}>
+                    <Col xs={24} md={8} lg={6}>
+                      <Form.Item label="Remote" name="remote">
+                        <Select
+                          options={[
+                            { value: "all", label: "All locations" },
+                            { value: "remote", label: "Remote only" },
+                            { value: "onsite", label: "On-site only" },
+                          ]}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8} lg={6}>
+                      <Form.Item label="Location" name="location">
+                        <Input
+                          placeholder="City, region, or country"
+                          allowClear
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8} lg={6}>
+                      <Form.Item label="Sources" name="sources">
+                        <Select
+                          mode="tags"
+                          placeholder="e.g. arbeitnow, stepstone"
+                          tokenSeparators={[","]}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8} lg={6}>
+                      <Form.Item label="Tags" name="tags">
+                        <Select
+                          mode="tags"
+                          placeholder="e.g. python, react"
+                          tokenSeparators={[","]}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8} lg={6}>
+                      <Form.Item
+                        label="Min CV match score"
+                        name="min_cv_ats_match_score"
+                      >
+                        <InputNumber
+                          min={0}
+                          max={100}
+                          style={{ width: "100%" }}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8} lg={6}>
+                      <Form.Item
+                        label="Min profile match score"
+                        name="min_profile_ats_match_score"
+                      >
+                        <InputNumber
+                          min={0}
+                          max={100}
+                          style={{ width: "100%" }}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8} lg={6}>
+                      <Form.Item label="Sort by" name="sort_by">
+                        <Select
+                          options={(
+                            Object.entries(SORT_FIELD_LABELS) as [
+                              JobFeedSortField,
+                              string
+                            ][]
+                          ).map(([value, label]) => ({ value, label }))}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8} lg={6}>
+                      <Form.Item label="Sort order" name="sort_order">
+                        <Select
+                          options={[
+                            { value: "desc", label: "Descending" },
+                            { value: "asc", label: "Ascending" },
+                          ]}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8} lg={6}>
+                      <Form.Item
+                        label="Exclude deal breakers"
+                        name="exclude_deal_breakers"
+                        valuePropName="checked"
+                      >
+                        <Switch />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8} lg={6}>
+                      <Form.Item
+                        label="Show skipped jobs"
+                        name="show_skipped"
+                        valuePropName="checked"
+                      >
+                        <Switch />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Flex gap={8} wrap="wrap">
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      icon={<SearchOutlined />}
+                      loading={loading}
+                    >
+                      Apply filters
+                    </Button>
+                    <Button
+                      icon={<ReloadOutlined />}
+                      onClick={() => {
+                        form.setFieldsValue(
+                          queryToFormValues(DEFAULT_JOB_FEED_QUERY)
+                        );
+                        onReset();
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  </Flex>
+                </>
+              ),
+            },
+          ]}
+        />
+      </Flex>
+    </Form>
   );
 }

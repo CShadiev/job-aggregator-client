@@ -75,6 +75,7 @@ export interface UpdateJobStatusRequest {
 }
 
 export interface JobFeedQuery {
+  q?: string;
   applied: boolean;
   remote?: boolean;
   sources: string[];
@@ -164,6 +165,8 @@ export const APPLIED_JOBS_QUERY: JobFeedQuery = {
 };
 
 export const DEFAULT_APPLIED_POSTED_WITHIN_DAYS = 30;
+
+export const DEFAULT_HIDE_INACTIVE = true;
 
 export const APPLIED_POSTED_WINDOW_OPTIONS = [
   { value: 30, label: "Last 30 days" },

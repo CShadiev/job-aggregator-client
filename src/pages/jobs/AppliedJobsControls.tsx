@@ -1,9 +1,11 @@
-import { Flex, Select, Typography } from "antd";
+import { Flex, Select, Switch, Typography } from "antd";
 import { APPLIED_POSTED_WINDOW_OPTIONS } from "../../types/jobs";
 
 interface AppliedJobsControlsProps {
   postedWithinDays: number;
   onPostedWithinDaysChange: (days: number) => void;
+  hideInactive: boolean;
+  onHideInactiveChange: (hideInactive: boolean) => void;
   count: number;
   loading?: boolean;
 }
@@ -11,6 +13,8 @@ interface AppliedJobsControlsProps {
 export default function AppliedJobsControls({
   postedWithinDays,
   onPostedWithinDaysChange,
+  hideInactive,
+  onHideInactiveChange,
   count,
   loading,
 }: AppliedJobsControlsProps) {
@@ -24,17 +28,23 @@ export default function AppliedJobsControls({
       <Typography.Text type="secondary">
         {loading ? "Loading applications…" : `${count} applications in view`}
       </Typography.Text>
-      <Flex align="center" gap={8} wrap="wrap">
-        <Typography.Text>Posted within</Typography.Text>
-        <Select
-          value={postedWithinDays}
-          style={{ minWidth: 160 }}
-          options={APPLIED_POSTED_WINDOW_OPTIONS.map((option) => ({
-            value: option.value,
-            label: option.label,
-          }))}
-          onChange={onPostedWithinDaysChange}
-        />
+      <Flex align="center" gap={16} wrap="wrap">
+        <Flex align="center" gap={8}>
+          <Switch checked={hideInactive} onChange={onHideInactiveChange} />
+          <Typography.Text>Hide inactive</Typography.Text>
+        </Flex>
+        <Flex align="center" gap={8} wrap="wrap">
+          <Typography.Text>Posted within</Typography.Text>
+          <Select
+            value={postedWithinDays}
+            style={{ minWidth: 160 }}
+            options={APPLIED_POSTED_WINDOW_OPTIONS.map((option) => ({
+              value: option.value,
+              label: option.label,
+            }))}
+            onChange={onPostedWithinDaysChange}
+          />
+        </Flex>
       </Flex>
     </Flex>
   );
