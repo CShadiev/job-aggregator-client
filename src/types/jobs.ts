@@ -61,6 +61,14 @@ export interface CoverLetterContent {
   sections: CoverLetterSection[];
 }
 
+// A generation that failed on the server is retried on the next request, so the
+// only states a client ever sees are "still working" and "done".
+export type CoverLetterGenerationStatus = "pending" | "complete";
+
+export interface CoverLetterGenerationStatusResponse {
+  status: CoverLetterGenerationStatus;
+}
+
 export interface JobFeedItem {
   job: JobPosting;
   fit: FitAssessment;

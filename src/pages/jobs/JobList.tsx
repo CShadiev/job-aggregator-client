@@ -1,7 +1,6 @@
-import { FileTextOutlined, LinkOutlined } from "@ant-design/icons";
+import { LinkOutlined } from "@ant-design/icons";
 import {
   Alert,
-  Button,
   Flex,
   Progress,
   Space,
@@ -14,6 +13,7 @@ import { useState } from "react";
 import { formatDateTime } from "../../utils/date";
 import { formatScore, scoreStatus } from "../../utils/format";
 import type { JobFeedItem, JobFeedParams } from "../../types/jobs";
+import CoverLetterButton from "./CoverLetterButton";
 import CoverLetterModal from "./CoverLetterModal";
 import JobStatusEditor from "./JobStatusEditor";
 import "./JobList.sass";
@@ -73,17 +73,14 @@ export default function JobList({
               </Typography.Text>
             ) : null}
           </Space>
-          {record.status?.cover_letter_key ? (
-            <Button
-              type="link"
-              size="small"
-              icon={<FileTextOutlined />}
-              style={{ padding: 0, height: "auto", alignSelf: "flex-start" }}
-              onClick={() => setCoverLetterJob(record)}
-            >
-              Cover letter
-            </Button>
-          ) : null}
+          <CoverLetterButton
+            jobUid={record.job.uid}
+            hasCoverLetter={Boolean(record.status?.cover_letter_key)}
+            onOpen={() => setCoverLetterJob(record)}
+            // Opening only when nothing else is open keeps a letter that finishes in
+            // the background from replacing the one being read.
+            onReady={() => setCoverLetterJob((current) => current ?? record)}
+          />
         </Flex>
       ),
     },

@@ -226,6 +226,18 @@ Whether a cover letter exists for a job is determined by the value of the job.st
   job_uid: str
   returns: bytes
 
+- POST /jobs/{job_uid}/cover-letter/generate
+  job_uid: str
+  returns: { "status": "pending" | "complete" }
+
+  Starts generation for a job that has no cover_letter_key and reports the status of a
+  request already running — the same call is both the trigger and the poll. Generation
+  runs in the background (roughly 10-15s), so a first call answers "pending"; poll until
+  "complete", then read the letter with GET /jobs/{job_uid}/cover-letter. A job that
+  already has a cover_letter_key answers "complete" immediately. 404 means the job has no
+  fit assessment for the user (nothing to write a letter from). A failed generation is
+  retried by the next call, so "failed" is never returned.
+
 CoverLetterContent = {
 "name": "string",
 "title": "string",
