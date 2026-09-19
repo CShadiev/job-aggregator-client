@@ -8,6 +8,8 @@ import {
   type JobFeedItem,
   type JobFeedParams,
   type JobFeedQuery,
+  type ManualJobSubmitRequest,
+  type ManualJobSubmitResponse,
   type PaginatedDataResponse,
   type UpdateJobStatusRequest,
 } from "../types/jobs";
@@ -238,5 +240,64 @@ export function useUpdateJobStatus() {
   return {
     updateStatus: mutation.mutate,
     isUpdating: mutation.isPending,
+  };
+}
+
+const SUBMIT_POLL_INTERVAL_MS = 4_000;
+
+function manualJobSubmitQueryKey(jobUid: string) {
+  return ["manual-job-submit", jobUid] as const;
+}
+
+async function postManualJobSubmit(
+  request: ManualJobSubmitRequest
+): Promise<ManualJobSubmitResponse> {
+  const { data } = await apiClient.post<ManualJobSubmitResponse>(
+    "/jobs/submit",
+    request
+  );
+  return data;
+}
+
+export function useSubmitManualJob() {
+  const mutation = useMutation({
+    mutationFn: postManualJobSubmit,
+  });
+
+  return {
+    submitJob: mutation.mutate,
+    isSubmitting: mutation.isPending,
+  };
+}
+
+/**
+ * Repeat POST /jobs/submit until the background evaluation reports complete.
+ *
+ * The first successful POST already claimed the work; later calls are polls.
+ * Pass `null` until the API has accepted a submit.
+ */
+export function useManualJobSubmitPoll(request: ManualJobSubmitRequest | null) {
+  const query = useQuery({
+    queryKey: manualJobSubmitQueryKey(request?.job_uid ?? ""),
+    queryFn: async () => {
+      if (!request) {
+        throw new Error("Missing submit request");
+      }
+      return postManualJobSubmit(request);
+    },
+    enabled: request !== null,
+    staleTime: 0,
+    refetchInterval: (current) =>
+      current.state.data?.status === "complete"
+        ? false
+        : SUBMIT_POLL_INTERVAL_MS,
+    refetchOnWindowFocus: false,
+    retry: true,
+  });
+
+  return {
+    status: query.data?.status,
+    isError: query.isError,
+    error: query.error,
   };
 }

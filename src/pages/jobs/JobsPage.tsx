@@ -16,6 +16,7 @@ import {
 import AppliedJobsControls from "./AppliedJobsControls";
 import JobFilters from "./JobFilters";
 import JobList from "./JobList";
+import SubmitJobControl from "./SubmitJobControl";
 
 export default function JobsPage() {
   const [activePanel, setActivePanel] = useState<JobFeedScope>("unapplied");
@@ -95,15 +96,18 @@ export default function JobsPage() {
 
   return (
     <Flex vertical gap={24}>
-      <div>
-        <Typography.Title level={2} style={{ marginBottom: 4 }}>
-          Job feed
-        </Typography.Title>
-        <Typography.Text type="secondary">
-          Browse new opportunities with discovery filters, or review jobs you
-          have already applied to.
-        </Typography.Text>
-      </div>
+      <Flex justify="space-between" align="flex-start" gap={16} wrap="wrap">
+        <div>
+          <Typography.Title level={2} style={{ marginBottom: 4 }}>
+            Job feed
+          </Typography.Title>
+          <Typography.Text type="secondary">
+            Browse new opportunities with discovery filters, or review jobs you
+            have already applied to.
+          </Typography.Text>
+        </div>
+        <SubmitJobControl />
+      </Flex>
 
       <Segmented
         value={activePanel}

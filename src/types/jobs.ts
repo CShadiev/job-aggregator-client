@@ -69,6 +69,24 @@ export interface CoverLetterGenerationStatusResponse {
   status: CoverLetterGenerationStatus;
 }
 
+export interface ManualJobSubmitRequest {
+  job_uid: string;
+  title: string;
+  company: string;
+  description_raw: string;
+  url: string;
+  location?: string;
+  remote?: boolean;
+  tags?: string[];
+  job_types?: string[];
+  posted_at?: string;
+}
+
+export interface ManualJobSubmitResponse {
+  job_uid: string;
+  status: CoverLetterGenerationStatus;
+}
+
 export interface JobFeedItem {
   job: JobPosting;
   fit: FitAssessment;
