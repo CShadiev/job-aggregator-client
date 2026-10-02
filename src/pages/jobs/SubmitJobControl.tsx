@@ -2,12 +2,14 @@ import { PlusOutlined } from "@ant-design/icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { App, Button } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   useManualJobSubmitPoll,
   useSubmitManualJob,
 } from "../../requests/jobs";
 import type { ManualJobSubmitRequest } from "../../types/jobs";
 import { getApiErrorMessage, isDailyLimitError } from "../../utils/apiError";
+import { DEMO_MANUAL_JOB_URL_REJECTED } from "../../utils/demoJobUrl";
 import SubmitJobModal from "./SubmitJobModal";
 
 function SubmitJobPoller({
@@ -47,6 +49,7 @@ function SubmitJobPoller({
 
 export default function SubmitJobControl() {
   const { notification } = App.useApp();
+  const { isDemo } = useAuth();
   const queryClient = useQueryClient();
   const { submitJob, isSubmitting } = useSubmitManualJob();
   const [open, setOpen] = useState(false);
@@ -85,14 +88,19 @@ export default function SubmitJobControl() {
       },
       onError: (error) => {
         const limited = isDailyLimitError(error);
+        const detail = getApiErrorMessage(
+          error,
+          limited
+            ? "Daily demo limit reached for manual job submissions"
+            : "The API did not accept this job description."
+        );
         notification.error({
-          title: limited ? "Daily demo limit reached" : "Could not submit job",
-          description: getApiErrorMessage(
-            error,
-            limited
-              ? "Daily demo limit reached for manual job submissions"
-              : "The API did not accept this job description."
-          ),
+          title: limited
+            ? "Daily demo limit reached"
+            : detail === DEMO_MANUAL_JOB_URL_REJECTED
+              ? "Posting URL not allowed"
+              : "Could not submit job",
+          description: detail,
         });
       },
     });
@@ -110,6 +118,7 @@ export default function SubmitJobControl() {
       <SubmitJobModal
         open={open}
         submitting={isSubmitting}
+        restrictUrlSources={isDemo}
         onClose={() => setOpen(false)}
         onSubmit={handleSubmit}
       />

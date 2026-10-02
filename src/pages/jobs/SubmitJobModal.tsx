@@ -14,10 +14,15 @@ import {
 import type { Dayjs } from "dayjs";
 import { useEffect } from "react";
 import type { ManualJobSubmitRequest } from "../../types/jobs";
+import {
+  DEMO_MANUAL_JOB_URL_REJECTED,
+  isAllowedDemoJobUrl,
+} from "../../utils/demoJobUrl";
 
 interface SubmitJobModalProps {
   open: boolean;
   submitting: boolean;
+  restrictUrlSources?: boolean;
   onClose: () => void;
   onSubmit: (request: Omit<ManualJobSubmitRequest, "job_uid">) => void;
 }
@@ -62,6 +67,7 @@ function formValuesToRequest(
 export default function SubmitJobModal({
   open,
   submitting,
+  restrictUrlSources = false,
   onClose,
   onSubmit,
 }: SubmitJobModalProps) {
@@ -105,6 +111,9 @@ export default function SubmitJobModal({
       <Typography.Paragraph type="secondary" style={{ marginTop: 0 }}>
         Paste a structured posting. Once the API accepts it, assessment and
         cover letter generation continue in the background.
+        {restrictUrlSources
+          ? " Demo submits must use an https LinkedIn, Arbeitnow, or Indeed URL."
+          : null}
       </Typography.Paragraph>
 
       <Form
@@ -138,12 +147,37 @@ export default function SubmitJobModal({
         <Form.Item
           label="Posting URL"
           name="url"
+          extra={
+            restrictUrlSources
+              ? "https links to LinkedIn, Arbeitnow, or Indeed (including subdomains such as de.indeed.com)."
+              : undefined
+          }
           rules={[
             { required: true, message: "URL is required" },
             { type: "url", message: "Enter a valid URL" },
+            ...(restrictUrlSources
+              ? [
+                  {
+                    validator: async (_: unknown, value: string | undefined) => {
+                      if (!value?.trim()) {
+                        return;
+                      }
+                      if (!isAllowedDemoJobUrl(value)) {
+                        throw new Error(DEMO_MANUAL_JOB_URL_REJECTED);
+                      }
+                    },
+                  },
+                ]
+              : []),
           ]}
         >
-          <Input placeholder="https://example.com/jobs/senior-engineer" />
+          <Input
+            placeholder={
+              restrictUrlSources
+                ? "https://www.linkedin.com/jobs/view/…"
+                : "https://example.com/jobs/senior-engineer"
+            }
+          />
         </Form.Item>
 
         <Form.Item

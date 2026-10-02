@@ -49,7 +49,7 @@ export default function AppShell() {
               type="info"
               showIcon
               title="Demo session — shared sample candidate"
-              description="Changes you make (status, cover letters) are visible to other visitors. Manual job submits and cover-letter generations are limited to 10 each per UTC day."
+              description="Changes you make (status, cover letters) are visible to other visitors. Manual job submits and cover-letter generations are limited to 10 each per UTC day. Pasted job URLs must be https links to LinkedIn, Arbeitnow, or Indeed."
             />
           ) : null}
           <Outlet />
