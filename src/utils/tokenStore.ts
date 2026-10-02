@@ -4,6 +4,7 @@ import type { LoginResponse } from "../types/auth";
 
 const ACCESS_TOKEN_KEY = "job_aggregator_at";
 const REFRESH_TOKEN_KEY = "job_aggregator_rt";
+const USERNAME_KEY = "job_aggregator_un";
 const EXPIRY_BUFFER_SECONDS = 30;
 
 let refreshPromise: Promise<string> | null = null;
@@ -23,7 +24,8 @@ export function getRefreshToken(): string | null {
 
 export function setTokens(
   accessToken: string,
-  refreshToken: string | null | undefined
+  refreshToken: string | null | undefined,
+  username?: string | null
 ): void {
   localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   if (refreshToken) {
@@ -31,11 +33,19 @@ export function setTokens(
   } else {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
   }
+  if (username) {
+    localStorage.setItem(USERNAME_KEY, username);
+  }
+}
+
+export function getSessionUsername(): string | null {
+  return localStorage.getItem(USERNAME_KEY);
 }
 
 export function clearTokens(): void {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(USERNAME_KEY);
 }
 
 export function hasStoredTokens(): boolean {

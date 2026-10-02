@@ -207,6 +207,9 @@ class LoginRequest(BaseModel):
 - POST: /users/login
   body: LoginRequest
 
+- POST: /users/demo-login
+  body: empty
+
 - POST: /users/refresh
   body: RefreshTokenRequest
 

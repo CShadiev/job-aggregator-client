@@ -7,7 +7,7 @@ import {
   useSubmitManualJob,
 } from "../../requests/jobs";
 import type { ManualJobSubmitRequest } from "../../types/jobs";
-import { getApiErrorMessage } from "../../utils/apiError";
+import { getApiErrorMessage, isDailyLimitError } from "../../utils/apiError";
 import SubmitJobModal from "./SubmitJobModal";
 
 function SubmitJobPoller({
@@ -84,11 +84,14 @@ export default function SubmitJobControl() {
         setPending((current) => [...current, request]);
       },
       onError: (error) => {
+        const limited = isDailyLimitError(error);
         notification.error({
-          title: "Could not submit job",
+          title: limited ? "Daily demo limit reached" : "Could not submit job",
           description: getApiErrorMessage(
             error,
-            "The API did not accept this job description."
+            limited
+              ? "Daily demo limit reached for manual job submissions"
+              : "The API did not accept this job description."
           ),
         });
       },

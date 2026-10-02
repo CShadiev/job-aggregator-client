@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { apiClient } from "../http/clients";
+import { isDailyLimitError } from "../utils/apiError";
 import { isPostedWithinDays } from "../utils/date";
 import {
   APPLIED_JOBS_QUERY,
@@ -287,12 +288,16 @@ export function useManualJobSubmitPoll(request: ManualJobSubmitRequest | null) {
     },
     enabled: request !== null,
     staleTime: 0,
-    refetchInterval: (current) =>
-      current.state.data?.status === "complete"
+    refetchInterval: (current) => {
+      if (isDailyLimitError(current.state.error)) {
+        return false;
+      }
+      return current.state.data?.status === "complete"
         ? false
-        : SUBMIT_POLL_INTERVAL_MS,
+        : SUBMIT_POLL_INTERVAL_MS;
+    },
     refetchOnWindowFocus: false,
-    retry: true,
+    retry: (_failureCount, error) => !isDailyLimitError(error),
   });
 
   return {

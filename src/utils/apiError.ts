@@ -1,5 +1,9 @@
 import { isAxiosError } from "axios";
 
+export function isDailyLimitError(error: unknown): boolean {
+  return isAxiosError(error) && error.response?.status === 429;
+}
+
 export function getApiErrorMessage(error: unknown, fallback: string): string {
   if (!isAxiosError(error)) {
     return fallback;
