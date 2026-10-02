@@ -1,5 +1,6 @@
 import { Alert, Badge, Flex, Segmented, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   APPLIED_JOBS_QUERY,
   DEFAULT_JOB_FEED_QUERY,
@@ -19,6 +20,7 @@ import JobList from "./JobList";
 import SubmitJobControl from "./SubmitJobControl";
 
 export default function JobsPage() {
+  const { isDemo } = useAuth();
   const [activePanel, setActivePanel] = useState<JobFeedScope>("unapplied");
   const [query, setQuery] = useState(loadUnappliedQuery);
   const [unappliedPage, setUnappliedPage] = useState(1);
@@ -173,7 +175,9 @@ export default function JobsPage() {
             emptyDescription={
               query.q
                 ? "Try searching for a different technology, title, or employer, or lower the ATS match threshold."
-                : "Try adjusting your discovery filters or check back after the next scheduled ingestion cycle."
+                : isDemo
+                  ? "The demo feed is empty until an operator seeds it. This is not a sign-in problem."
+                  : "Try adjusting your discovery filters or check back after the next scheduled ingestion cycle."
             }
             allowSkip
           />

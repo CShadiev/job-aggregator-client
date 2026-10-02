@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../http/clients";
+import { isDailyLimitError } from "../utils/apiError";
 import type {
   CoverLetterContent,
   CoverLetterGenerationStatusResponse,
@@ -33,10 +34,14 @@ export function useCoverLetterGeneration(jobUid: string | null) {
       return data;
     },
     enabled: jobUid !== null,
-    refetchInterval: (query) =>
-      query.state.data?.status === "pending"
+    refetchInterval: (query) => {
+      if (isDailyLimitError(query.state.error)) {
+        return false;
+      }
+      return query.state.data?.status === "pending"
         ? GENERATION_POLL_INTERVAL_MS
-        : false,
+        : false;
+    },
     refetchOnWindowFocus: false,
     retry: false,
   });

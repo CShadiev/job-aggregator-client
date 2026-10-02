@@ -3,12 +3,14 @@ export interface LoginRequest {
   password: string;
 }
 
+export const DEMO_SESSION_NAME = "demo";
+
 export interface LoginResponse {
   access_token: string;
   id_token: string;
   token_type: string;
   expires_in: number;
-  refresh_token?: string;
+  refresh_token?: string | null;
 }
 
 export interface RefreshTokenRequest {

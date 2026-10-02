@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { App, Button, Tooltip } from "antd";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useCoverLetterGeneration } from "../../requests/coverLetter";
+import { getApiErrorMessage, isDailyLimitError } from "../../utils/apiError";
 
 interface CoverLetterButtonProps {
   jobUid: string;
@@ -32,6 +33,7 @@ export default function CoverLetterButton({
   const [requested, setRequested] = useState(false);
   const generation = useCoverLetterGeneration(requested ? jobUid : null);
   const announced = useRef(false);
+  const announcedLimit = useRef(false);
 
   const status = generation.data?.status;
 
@@ -44,6 +46,18 @@ export default function CoverLetterButton({
     queryClient.invalidateQueries({ queryKey: ["jobs"] });
     onReady();
   }, [status, message, queryClient, onReady]);
+
+  useEffect(() => {
+    if (!generation.isError || announcedLimit.current) return;
+    if (!isDailyLimitError(generation.error)) return;
+    announcedLimit.current = true;
+    message.warning(
+      getApiErrorMessage(
+        generation.error,
+        "Daily demo limit reached for cover letter generation"
+      )
+    );
+  }, [generation.isError, generation.error, message]);
 
   // Trust a finished generation as well as the feed: the row still holds the status
   // it was rendered with until the refetch above lands.
@@ -62,17 +76,27 @@ export default function CoverLetterButton({
   }
 
   if (generation.isError) {
+    const limited = isDailyLimitError(generation.error);
+    const detail = getApiErrorMessage(
+      generation.error,
+      limited
+        ? "Daily demo limit reached for cover letter generation"
+        : "Could not reach the generator, or this job has no fit assessment to write from."
+    );
     return (
-      <Tooltip title="Could not reach the generator, or this job has no fit assessment to write from.">
+      <Tooltip title={detail}>
         <Button
           danger
           type="link"
           size="small"
           icon={<ReloadOutlined />}
           style={linkStyle}
-          onClick={() => generation.refetch()}
+          onClick={() => {
+            announcedLimit.current = false;
+            void generation.refetch();
+          }}
         >
-          Generation failed — retry
+          {limited ? "Daily limit reached" : "Generation failed — retry"}
         </Button>
       </Tooltip>
     );
