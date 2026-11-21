@@ -6,6 +6,7 @@ import { isPostedWithinDays } from "../utils/date";
 import {
   APPLIED_JOBS_QUERY,
   DEFAULT_APPLY_STATUS,
+  type FitAssessment,
   type JobFeedItem,
   type JobFeedParams,
   type JobFeedQuery,
@@ -134,6 +135,26 @@ export function useAppliedJobFeed(
     isError: query.isError,
     error: query.error,
     refetch: query.refetch,
+  };
+}
+
+export function useFitAssessment(jobUid: string | null) {
+  const query = useQuery({
+    queryKey: ["fit-assessment", jobUid ?? ""],
+    queryFn: async () => {
+      const { data } = await apiClient.get<FitAssessment>(
+        `/jobs/${jobUid}/fit-assessment`
+      );
+      return data;
+    },
+    enabled: jobUid !== null,
+  });
+
+  return {
+    assessment: query.data,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
   };
 }
 

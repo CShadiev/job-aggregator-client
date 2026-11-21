@@ -1,6 +1,7 @@
-import { LinkOutlined } from "@ant-design/icons";
+import { BarChartOutlined, LinkOutlined } from "@ant-design/icons";
 import {
   Alert,
+  Button,
   Flex,
   Progress,
   Space,
@@ -15,6 +16,7 @@ import { formatScore, scoreStatus } from "../../utils/format";
 import type { JobFeedItem, JobFeedParams } from "../../types/jobs";
 import CoverLetterButton from "./CoverLetterButton";
 import CoverLetterModal from "./CoverLetterModal";
+import FitAssessmentDrawer from "./FitAssessmentDrawer";
 import JobStatusEditor from "./JobStatusEditor";
 import "./JobList.sass";
 
@@ -48,6 +50,7 @@ export default function JobList({
   const [coverLetterJob, setCoverLetterJob] = useState<JobFeedItem | null>(
     null
   );
+  const [fitJob, setFitJob] = useState<JobFeedItem | null>(null);
 
   const columns: TableColumnsType<JobFeedItem> = [
     {
@@ -108,6 +111,15 @@ export default function JobList({
               format={(value) => formatScore(value ?? 0)}
             />
           </div>
+          <Button
+            type="link"
+            size="small"
+            icon={<BarChartOutlined />}
+            style={{ padding: 0, height: "auto", alignSelf: "flex-start" }}
+            onClick={() => setFitJob(record)}
+          >
+            Fit details
+          </Button>
         </Flex>
       ),
     },
@@ -209,6 +221,11 @@ export default function JobList({
         company={coverLetterJob?.job.company}
         open={coverLetterJob !== null}
         onClose={() => setCoverLetterJob(null)}
+      />
+      <FitAssessmentDrawer
+        job={fitJob?.job ?? null}
+        open={fitJob !== null}
+        onClose={() => setFitJob(null)}
       />
     </>
   );

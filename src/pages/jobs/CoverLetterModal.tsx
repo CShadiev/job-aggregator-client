@@ -1,4 +1,9 @@
-import { DownloadOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  DownloadOutlined,
+  FormOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 import {
   Alert,
   App,
@@ -9,18 +14,23 @@ import {
   Modal,
   Skeleton,
   Space,
+  Spin,
   Typography,
 } from "antd";
 import { useMemo, useState, type ReactNode } from "react";
 import {
   downloadCoverLetterPdf,
   useCoverLetter,
+  useCoverLetterGenerationStatus,
+  useRegenerateCoverLetter,
   useUpdateCoverLetter,
 } from "../../requests/coverLetter";
 import type {
   CoverLetterContent,
   CoverLetterSection,
 } from "../../types/jobs";
+import { getApiErrorMessage, isDailyLimitError } from "../../utils/apiError";
+import CoverLetterInstructionsModal from "./CoverLetterInstructionsModal";
 import "./CoverLetterModal.sass";
 
 interface CoverLetterModalProps {
@@ -280,6 +290,12 @@ export default function CoverLetterModal({
   const { mutate: save, isPending: isSaving } = useUpdateCoverLetter(
     jobUid ?? ""
   );
+  const { regenerate, isRequesting } = useRegenerateCoverLetter(jobUid ?? "");
+  const generationStatus = useCoverLetterGenerationStatus(
+    open ? jobUid : null
+  );
+  const regenerating = isRequesting || generationStatus === "pending";
+  const [instructionsOpen, setInstructionsOpen] = useState(false);
 
   const [draft, setDraft] = useState<CoverLetterContent | null>(null);
   const [syncedData, setSyncedData] = useState<CoverLetterContent | undefined>(
@@ -374,6 +390,36 @@ export default function CoverLetterModal({
     });
   };
 
+  const handleRegenerate = () => {
+    if (!jobUid) return;
+    modal.confirm({
+      title: "Write a new cover letter?",
+      content: dirty
+        ? "The current letter and your unsaved edits will be replaced. Your saved letter instructions will be applied."
+        : "The current letter, including any edits you saved, will be replaced. Your saved letter instructions will be applied.",
+      okText: "Regenerate",
+      okButtonProps: { danger: true },
+      cancelText: "Keep current letter",
+      onOk: () =>
+        regenerate(undefined, {
+          onError: (error) => {
+            if (isDailyLimitError(error)) {
+              message.warning(
+                getApiErrorMessage(
+                  error,
+                  "Daily demo limit reached for cover letter generation"
+                )
+              );
+              return;
+            }
+            message.error(
+              getApiErrorMessage(error, "Could not start a new cover letter")
+            );
+          },
+        }),
+    });
+  };
+
   const handleDownload = async () => {
     if (!jobUid) return;
     const baseName =
@@ -417,24 +463,41 @@ export default function CoverLetterModal({
       onCancel={handleClose}
       title="Cover letter"
       width={760}
-      maskClosable={false}
+      mask={{ closable: false }}
       destroyOnHidden
       footer={
-        <Flex justify="space-between" align="center">
-          <Button
-            icon={<DownloadOutlined />}
-            loading={isDownloading}
-            disabled={!query.data}
-            onClick={handleDownload}
-          >
-            Download PDF
-          </Button>
+        <Flex justify="space-between" align="center" wrap="wrap" gap={8}>
+          <Space wrap>
+            <Button
+              icon={<DownloadOutlined />}
+              loading={isDownloading}
+              disabled={!query.data || regenerating}
+              onClick={handleDownload}
+            >
+              Download PDF
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              loading={regenerating}
+              disabled={!jobUid}
+              onClick={handleRegenerate}
+            >
+              {regenerating ? "Regenerating" : "Regenerate"}
+            </Button>
+            <Button
+              type="text"
+              icon={<FormOutlined />}
+              onClick={() => setInstructionsOpen(true)}
+            >
+              Instructions
+            </Button>
+          </Space>
           <Space>
             <Button onClick={handleClose}>Close</Button>
             <Button
               type="primary"
               loading={isSaving}
-              disabled={!dirty}
+              disabled={!dirty || regenerating}
               onClick={handleSave}
             >
               Save changes
@@ -443,13 +506,25 @@ export default function CoverLetterModal({
         </Flex>
       }
     >
-      {query.isLoading ? (
+      <CoverLetterInstructionsModal
+        open={instructionsOpen}
+        onClose={() => setInstructionsOpen(false)}
+      />
+      {regenerating ? (
+        <Flex vertical align="center" gap={16} style={{ paddingBlock: 48 }}>
+          <Spin size="large" />
+          <Typography.Text type="secondary">
+            Writing a new letter from your profile, this posting, and your
+            instructions. Usually takes a few seconds.
+          </Typography.Text>
+        </Flex>
+      ) : query.isLoading ? (
         <Skeleton active paragraph={{ rows: 8 }} />
       ) : query.isError ? (
         <Alert
           type="error"
           showIcon
-          message="Unable to load cover letter"
+          title="Unable to load cover letter"
           description={
             query.error instanceof Error
               ? query.error.message

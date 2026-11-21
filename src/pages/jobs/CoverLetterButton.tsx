@@ -3,7 +3,6 @@ import {
   FileTextOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
-import { useQueryClient } from "@tanstack/react-query";
 import { App, Button, Tooltip } from "antd";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useCoverLetterGeneration } from "../../requests/coverLetter";
@@ -29,23 +28,22 @@ export default function CoverLetterButton({
   onReady,
 }: CoverLetterButtonProps) {
   const { message } = App.useApp();
-  const queryClient = useQueryClient();
   const [requested, setRequested] = useState(false);
-  const generation = useCoverLetterGeneration(requested ? jobUid : null);
-  const announced = useRef(false);
+  const generation = useCoverLetterGeneration(jobUid, requested);
   const announcedLimit = useRef(false);
 
   const status = generation.data?.status;
+  // A regeneration takes the status from complete back to pending, so each run that
+  // finishes is announced, but a status that was already complete on mount is not.
+  const lastStatus = useRef(status);
 
   useEffect(() => {
-    if (status !== "complete" || announced.current) return;
-    announced.current = true;
+    const previous = lastStatus.current;
+    lastStatus.current = status;
+    if (status !== "complete" || previous === "complete") return;
     message.success("Cover letter is ready");
-    // The feed carries cover_letter_key, so it has to be refetched before this row
-    // stops offering to generate a letter that now exists.
-    queryClient.invalidateQueries({ queryKey: ["jobs"] });
     onReady();
-  }, [status, message, queryClient, onReady]);
+  }, [status, message, onReady]);
 
   useEffect(() => {
     if (!generation.isError || announcedLimit.current) return;
@@ -59,8 +57,21 @@ export default function CoverLetterButton({
     );
   }, [generation.isError, generation.error, message]);
 
+  const firstRequestInFlight =
+    requested && status === undefined && !generation.isError;
+
+  if (status === "pending" || firstRequestInFlight) {
+    return (
+      <Tooltip title="Writing a letter from your profile, this posting, and your instructions. Usually takes a few seconds.">
+        <Button type="link" size="small" loading style={linkStyle}>
+          {hasCoverLetter ? "Regenerating" : "Generating"}
+        </Button>
+      </Tooltip>
+    );
+  }
+
   // Trust a finished generation as well as the feed: the row still holds the status
-  // it was rendered with until the refetch above lands.
+  // it was rendered with until the feed refetch lands.
   if (hasCoverLetter || status === "complete") {
     return (
       <Button
@@ -97,16 +108,6 @@ export default function CoverLetterButton({
           }}
         >
           {limited ? "Daily limit reached" : "Generation failed — retry"}
-        </Button>
-      </Tooltip>
-    );
-  }
-
-  if (requested) {
-    return (
-      <Tooltip title="Writing a letter from your profile and this posting. Usually takes a few seconds.">
-        <Button type="link" size="small" loading style={linkStyle}>
-          Generating
         </Button>
       </Tooltip>
     );

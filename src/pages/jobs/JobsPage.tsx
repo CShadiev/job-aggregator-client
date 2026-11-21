@@ -15,6 +15,7 @@ import {
   saveUnappliedQuery,
 } from "../../utils/jobFeedStorage";
 import AppliedJobsControls from "./AppliedJobsControls";
+import CoverLetterInstructionsControl from "./CoverLetterInstructionsControl";
 import JobFilters from "./JobFilters";
 import JobList from "./JobList";
 import SubmitJobControl from "./SubmitJobControl";
@@ -108,7 +109,10 @@ export default function JobsPage() {
             have already applied to.
           </Typography.Text>
         </div>
-        <SubmitJobControl />
+        <Flex gap={8} wrap="wrap">
+          <CoverLetterInstructionsControl />
+          <SubmitJobControl />
+        </Flex>
       </Flex>
 
       <Segmented
